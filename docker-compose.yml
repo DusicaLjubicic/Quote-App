@@ -1,0 +1,51 @@
+version: '3.8'
+
+name: 'quote-app'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: quote-backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    env_file:
+      - .env
+    networks:
+      - quotes-network
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: quote-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - quotes-network
+
+  mongo:
+    image: mongo:4.4
+    container_name: quote-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - quotes-network
+    healthcheck:
+      test: ["CMD", "ls", "/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+networks:
+  quotes-network:
+
+volumes:
+  mongo-data:
